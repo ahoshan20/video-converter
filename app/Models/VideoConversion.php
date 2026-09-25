@@ -22,6 +22,7 @@ class VideoConversion extends Model
         'input_size',
         'output_size',
         'status',
+        'is_downloaded',
         'progress',
         'error_message',
         'profile',
@@ -34,6 +35,7 @@ class VideoConversion extends Model
     {
         return [
             'status' => VideoConversionStatus::class,
+            'is_downloaded' => 'boolean',
             'input_size' => 'integer',
             'output_size' => 'integer',
             'progress' => 'integer',

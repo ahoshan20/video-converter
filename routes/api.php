@@ -10,4 +10,5 @@ Route::middleware(['web', 'auth', 'verified'])->group(function () {
     Route::get('/conversions/{conversion}', [VideoConversionController::class, 'show'])->name('api.conversions.show');
     Route::delete('/conversions/{conversion}', [VideoConversionController::class, 'destroy'])->name('api.conversions.destroy');
     Route::get('/conversions/{conversion}/download', [VideoConversionController::class, 'download'])->name('api.conversions.download');
+    Route::get('/all-conversions', [VideoConversionController::class, 'allConversions'])->name('api.conversions.all');
 });

@@ -1,5 +1,7 @@
 import { Head } from "@inertiajs/react";
 import {
+    BoldIcon,
+    Circle,
     Download,
     Film,
     FolderUp,
@@ -287,7 +289,45 @@ export default function Dashboard() {
             setError(err instanceof Error ? err.message : "Conversion failed.");
         }
     };
+    const handleConvert = async (id: number) => {
+        try {
+            const response = await fetch("/api/conversions", {
+                method: "POST",
+                credentials: "same-origin",
+                headers: {
+                    "Content-Type": "application/json",
+                    "X-CSRF-TOKEN": getCsrfToken(),
+                    Accept: "application/json",
+                },
+                body: JSON.stringify({ conversions: [id] }),
+            });
 
+            const payload = await response.json();
+
+            if (!response.ok) {
+                throw new Error(payload?.message ?? "Conversion failed.");
+            }
+
+            setItems((existing) =>
+                existing.map((item) => {
+                    const updated = payload.data?.find(
+                        (entry: ConversionRecord) => entry.id === item.id,
+                    );
+                    return updated
+                        ? {
+                              ...item,
+                              ...updated,
+                              status: updated.status ?? item.status,
+                          }
+                        : item;
+                }),
+            );
+        } catch (err) {
+            setError(
+                err instanceof Error ? err.message : "Conversion   failed.",
+            );
+        }
+    };
     const handleRemove = async (id: number) => {
         try {
             const response = await fetch(`/api/conversions/${id}`, {
@@ -315,11 +355,12 @@ export default function Dashboard() {
 
     const handleDownload = (id: number) => {
         window.location.href = `/api/conversions/${id}/download`;
+        loadConversions();
     };
 
-    const handleDownloadAll = () => {
-        completedItems.forEach((item) => handleDownload(item.id));
-    };
+    // const handleDownloadAll = () => {
+    //     completedItems.forEach((item) => handleDownload(item.id));
+    // };
 
     return (
         <>
@@ -339,17 +380,17 @@ export default function Dashboard() {
                             your laptop.
                         </p>
                     </div>
-                    <Button
+                    {/* <Button
                         variant="outline"
                         onClick={handleDownloadAll}
                         disabled={completedItems.length === 0}
                     >
                         <Download className="size-4" />
                         Download All Completed
-                    </Button>
+                    </Button> */}
                 </header>
 
-                <div className="grid gap-6 xl:grid-cols-[1.5fr_0.7fr]">
+                <div className="grid gap-6 xl:grid-cols-[2fr_0.7fr]">
                     <Card>
                         <CardHeader>
                             <CardTitle className="flex items-center gap-2">
@@ -463,19 +504,23 @@ export default function Dashboard() {
                                                     <p className="truncate font-medium">
                                                         {item.original_filename}
                                                     </p>
-                                                    <div className="mt-1 flex flex-wrap gap-2 text-xs text-muted-foreground">
+                                                    <div className="mt-1 flex items-center flex-wrap gap-2 text-xs text-muted-foreground">
                                                         <span>
                                                             {humanFileSize(
                                                                 item.input_size,
                                                             )}
                                                         </span>
-                                                        <span>•</span>
+                                                        <span>
+                                                            <Circle size={6} />
+                                                        </span>
                                                         <span>
                                                             {formatFileType(
                                                                 item.original_filename,
                                                             )}
                                                         </span>
-                                                        <span>•</span>
+                                                        <span>
+                                                            <Circle size={6} />
+                                                        </span>
                                                         <span>
                                                             {item.profile ??
                                                                 CONVERSION_PROFILE.name}
@@ -495,9 +540,22 @@ export default function Dashboard() {
                                                             item.status,
                                                         )}
                                                     </Badge>
+                                                    {item.status ===
+                                                        "waiting" && (
+                                                        <Button
+                                                            variant="outline"
+                                                            size="sm"
+                                                            onClick={() =>
+                                                                handleConvertAll()
+                                                            }
+                                                        >
+                                                            Convert
+                                                        </Button>
+                                                    )}
                                                     {[
                                                         "waiting",
                                                         "queued",
+                                                        "failed",
                                                     ].includes(item.status) && (
                                                         <Button
                                                             variant="ghost"

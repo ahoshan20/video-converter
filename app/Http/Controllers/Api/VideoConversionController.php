@@ -17,6 +17,17 @@ use Symfony\Component\HttpFoundation\BinaryFileResponse;
 
 class VideoConversionController extends Controller
 {
+    public function allConversions(Request $request): JsonResponse
+    {
+        $conversions = VideoConversion::query()
+            ->where('user_id', $request->user()->id)
+            ->orderByDesc('created_at')
+            ->get();
+
+        return response()->json([
+            'data' => $conversions->map(fn ($conversion) => $this->serializeConversion($conversion)),
+        ]);
+    }
     public function upload(Request $request, FfmpegService $ffmpeg): JsonResponse
     {
         Log::info('Video upload request received.', ['user_id' => $request->user()->id]);
@@ -82,6 +93,7 @@ class VideoConversionController extends Controller
     {
         $conversions = VideoConversion::query()
             ->where('user_id', $request->user()->id)
+            ->where('is_downloaded', false)
             ->orderByDesc('created_at')
             ->get();
 
@@ -129,6 +141,9 @@ class VideoConversionController extends Controller
         if (! is_file($path)) {
             return response()->json(['message' => 'Output file not found.'], 404);
         }
+
+        $conversion->is_downloaded = true;
+        $conversion->save();
 
         return response()->download($path, $conversion->output_filename, ['Content-Type' => 'video/3gpp']);
     }

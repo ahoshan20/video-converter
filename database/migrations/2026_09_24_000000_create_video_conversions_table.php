@@ -22,6 +22,7 @@ return new class extends Migration
             $table->unsignedBigInteger('input_size')->nullable();
             $table->unsignedBigInteger('output_size')->nullable();
             $table->string('status')->default(VideoConversionStatus::Waiting->value);
+            $table->boolean('is_downloaded')->default(false);
             $table->unsignedTinyInteger('progress')->default(0);
             $table->text('error_message')->nullable();
             $table->string('profile')->default('Symphony BL102');

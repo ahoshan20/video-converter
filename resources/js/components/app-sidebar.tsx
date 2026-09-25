@@ -23,8 +23,8 @@ const mainNavItems: NavItem[] = [
         icon: LayoutGrid,
     },
     {
-        title: 'Posts',
-        href: 'posts',
+        title: 'Conversions',
+        href: '/conversions/all',
         icon: BookOpen,
     }
 ];
